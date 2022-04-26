@@ -31,7 +31,7 @@ class AddTopicForm(forms.Form):
 
 
 class EditProfileForm(forms.ModelForm):
-    def __init__(self, old_profile_data=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     class Meta:

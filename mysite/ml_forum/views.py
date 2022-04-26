@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, Http404, HttpResponseForbidden
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView, ListView
+from django.views.generic import CreateView, UpdateView, ListView, DetailView
 from .models import *
 from django.core.exceptions import PermissionDenied
 from ml_forum.forms import RegisterUserForm, LoginUserForm, AddTopicForm, EditProfileForm, VerifyProfileForm
@@ -30,10 +30,11 @@ class ShowSections(ListView):
         return Section.objects.filter(is_published=True)
 
 
-def show_profile(request, username):
-    user = User.objects.get(username=username)
-    profile = UserProfile.objects.get(user=user).__dict__
-    return render(request, 'ml_forum/profile.html', context=profile)
+class ShowProfile(DetailView):
+    model = UserProfile
+    template_name = 'ml_forum/profile.html'
+    context_object_name = 'profile'
+    slug_url_kwarg = 'username'
 
 
 class EditProfile(UpdateView, LoginRequiredMixin):
@@ -64,8 +65,10 @@ def verify_profile(request, username):
             data = form.cleaned_data
             if data['code'] == request.user.userprofile.verify_code \
                     and request.user.userprofile.verify_code != -1:
-                UserProfile.objects.filter(user=request.user).update(verified=True)
+                UserProfile.objects.filter(user=request.user).update(verified=True, verify_code=-1)
                 return redirect('profile', username)
+            else:
+                form.add_error(None, 'Неверный код.')
     else:
         form = VerifyProfileForm()
         server = smtplib.SMTP('smtp.gmail.com: 587')
@@ -107,17 +110,6 @@ class ShowTopics(ListView):
         return Topic.objects.filter(is_published=True, section__pk=self.kwargs['section_id'])
 
 
-def show_section(request, section_id):
-    topics = Topic.objects.filter(section=section_id)
-    sections = Section.objects.filter(pk=section_id)
-    if len(sections) == 0:
-        raise Http404()
-    context = {
-        'topics': topics,
-        'section': sections[0]
-    }
-    return render(request, 'ml_forum/topics.html', context=context)
-
 
 @login_required
 def add_topic(request, section_id):
@@ -142,7 +134,7 @@ def add_topic(request, section_id):
                 'user': request.user
             }
             Post.objects.create(**start_post_data)
-            return redirect('index')
+            return redirect('section', section_id)
     else:
         form = AddTopicForm()
     context = {
@@ -163,7 +155,7 @@ class ShowTopicPosts(ListView):
         try:
             context['section'] = Section.objects.get(pk=self.kwargs['section_id'])
             context['topic'] = Topic.objects.get(pk=self.kwargs['topic_id'])
-            if not context['section'].is_published or not  context['topic'].is_published:
+            if not context['section'].is_published or not context['topic'].is_published:
                 raise PermissionDenied
         except (Section.DoesNotExist, Topic.DoesNotExist):
             raise Http404()
@@ -173,19 +165,10 @@ class ShowTopicPosts(ListView):
         return Topic.objects.filter(is_published=True, section__pk=self.kwargs['section_id'])
 
 
-def show_topic(request, section_id, topic_id):
-    try:
-        topic = Topic.objects.get(pk=topic_id)
-        section = Section.objects.get(pk=section_id)
-    except:
-        raise Http404()
-    posts = Post.objects.filter(topic=topic)
-    context = {
-        'topic': topic,
-        'section': section,
-        'posts': posts
-    }
-    return render(request, 'ml_forum/topic_posts.html', context=context)
+class AddPost(CreateView):
+    model = Post
+
+
 
 
 def pages(request, page):
@@ -195,11 +178,11 @@ def pages(request, page):
 
 
 def pageNotFound(request, exception):
-    return HttpResponseNotFound('ты куда лезеш эээ')
+    return HttpResponseNotFound('нету бля')
 
 
 def pageForbidden(request, exception):
-    return HttpResponseForbidden('ты куда лезеш эээ блячя')
+    return HttpResponseForbidden('ты куда лезеш эээ бляяя')
 
 
 class DataMixin:
@@ -208,7 +191,7 @@ class DataMixin:
         return context
 
 
-class RegisterUser(DataMixin, CreateView):
+class RegisterUser(CreateView):
     form_class = RegisterUserForm
     template_name = 'ml_forum/register.html'
     success_url = reverse_lazy('index')

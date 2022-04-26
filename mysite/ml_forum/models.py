@@ -12,9 +12,9 @@ class UserProfile(models.Model):
     surname = models.CharField(max_length=25, blank=True, verbose_name='Фамилия')
     biography = models.TextField(blank=True, verbose_name='О себе')
     photo = models.ImageField(upload_to="photos/", default="photos/default.jpg", verbose_name='Фото профиля')
-    email = models.CharField(max_length=25, blank=True, verbose_name='Почта')
-    github = models.CharField(max_length=25, blank=True, verbose_name='Гитхаб')
-    telegram = models.CharField(max_length=25, blank=True, verbose_name='Телеграм')
+    email = models.CharField(max_length=100, blank=True, verbose_name='Почта')
+    github = models.CharField(max_length=100, blank=True, verbose_name='Гитхаб')
+    telegram = models.CharField(max_length=100, blank=True, verbose_name='Телеграм')
     time_create = models.DateTimeField(auto_now_add=True)
     is_public = models.BooleanField(default=True, verbose_name='Публичный профиль')
     verify_code = models.IntegerField(default=-1)
@@ -50,8 +50,8 @@ class Section(models.Model):
 
 
 class Topic(models.Model):
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=50)
+    name = models.CharField(max_length=30, verbose_name='Название')
+    description = models.CharField(max_length=50, verbose_name='Краткое описание')
     posts_count = models.IntegerField(default=0)
     time_create = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now=True)

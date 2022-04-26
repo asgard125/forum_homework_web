@@ -3,5 +3,5 @@
 <h1>{{title}}</h1>
     <a class="btn btn-primary" href="{% url 'profile_edit' request.user.username %}">Редактировать профиль</a>
     <a class="btn btn-primary" href="{% url 'profile_verify' request.user.username %}">Подтвердить профиль</a>
-    <li>{{name}}  {{surname}}</li>
+    <li>{{profile.name}}  {{profile.surname}}</li>
 {% endblock %}
