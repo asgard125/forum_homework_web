@@ -1,0 +1,7 @@
+{% extends 'ml_forum/base.html' %}
+{% block content %}
+<h1>{{title}}</h1>
+    <a class="btn btn-primary" href="{% url 'profile_edit' request.user.username %}">Редактировать профиль</a>
+    <a class="btn btn-primary" href="{% url 'profile_verify' request.user.username %}">Подтвердить профиль</a>
+    <li>{{name}}  {{surname}}</li>
+{% endblock %}

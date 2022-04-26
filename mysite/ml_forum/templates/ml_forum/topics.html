@@ -1,0 +1,15 @@
+{% extends 'ml_forum/base.html' %}
+{% block content %}
+<h1>{{title}}</h1>
+<h1>{{section.name}}</h1>
+<a class="btn btn-secondary" href="{% url 'add_topic' section.pk %}">Создать тему</a><br>
+    {% if topics_count == 0 %}
+        <h1>Тем пока нет</h1>
+    {% else %}
+<div class="list-group">
+    {% for t in topics %}
+        <a href="{{t.get_absolute_url}}" class="list-group-item list-group-item-action list-group-item-secondary">{{t.name}}, Постов:{{t.posts_count}}<br> {{t.description}}</a><br>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

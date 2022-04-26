@@ -1,0 +1,14 @@
+{% extends 'ml_forum/base.html' %}
+{% block content %}
+<h1>{{title}}</h1>
+<h1>{{section.name}}</h1>
+<h1>{{topic.name}}</h1>
+    {% if topics_count == 0 %}
+        <h1>сообщений пока нет</h1>
+    {% else %}
+    {% for p in posts %}
+        <li>{{p.user}}<br>{{p.post}}</a></li>
+    {% endfor %}
+<a class="btn btn-primary" href="{% url 'add_post' section.pk topic.pk %}">Добавить сообщение</a>
+{% endif %}
+{% endblock %}
