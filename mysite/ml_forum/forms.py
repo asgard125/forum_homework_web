@@ -24,9 +24,9 @@ class LoginUserForm(AuthenticationForm):
 
 
 class AddTopicForm(forms.Form):
-    name = forms.CharField(label="Название:", max_length=30,  widget=forms.TextInput(attrs={'class': 'form-input'}))
-    description = forms.CharField(label="Описание:", max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
-    post = forms.CharField(label="Ваш пост:", widget=forms.Textarea(attrs={'cols': 100, 'rows': 10}))
+    name = forms.CharField(label="Название", max_length=30,  widget=forms.TextInput(attrs={'class': 'form-input'}))
+    description = forms.CharField(label="Описание", max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    post = forms.CharField(label="Ваш пост", widget=forms.Textarea(attrs={'cols': 100, 'rows': 10}))
     captcha = CaptchaField()
 
 
