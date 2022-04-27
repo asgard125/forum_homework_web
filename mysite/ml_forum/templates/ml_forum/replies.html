@@ -1,0 +1,19 @@
+{% extends 'ml_forum/base.html' %}
+{% block content %}
+<h1>{{title}}</h1>
+    {% for p in posts %}
+        {% if p.is_published and not p.reply_watched%}
+        <div class="post_row">
+            <div class="post_row_info"> <center><a href="{% url 'profile' p.user.username %}">{{p.user.username}}</a></center>
+                <img src="{{ p.user.userprofile.photo.url }}" class="post_image">
+                <small><center>Сообщений: {{p.user.userprofile.messages_count}}</center></small>
+            </div>
+            <div class="post_row_message">{{ p.time_create }} <br>
+            {{ p.post }}</div>
+        </div>
+<div class="post_buttons"><a class="btn btn-primary" href="{% url 'reply_watched' p.pk %}">Просмотрено</a>
+<a class="btn btn-primary" href="{% url 'topic' p.topic.section.pk p.topic.pk %}">Перейти в тему</a>
+</div>
+    {% endif %}
+    {% endfor %}
+{% endblock %}

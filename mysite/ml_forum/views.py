@@ -240,12 +240,39 @@ class EditPost(UpdateView, LoginRequiredMixin):
         return reverse_lazy("topic", kwargs={'section_id': self.kwargs['section_id'], 'topic_id': self.kwargs['topic_id']})
 
 
-def pageNotFound(request, exception):
-    return render(request, 'ml_forum/404error.html')
+def delete_post(request, section_id, topic_id, post_id):
+    try:
+        post = Post.objects.get(pk=post_id)
+        if post.user != request.user:
+            raise PermissionDenied
+        post.delete()
+        return redirect('topic', section_id=section_id, topic_id=topic_id)
+    except Post.DoesNotExist:
+        return redirect('topic', section_id=section_id, topic_id=topic_id)
 
 
-def pageForbidden(request, exception):
-    return render(request, 'ml_forum/403error.html')
+class ShowReplies(ListView):
+    model = Post
+    template_name = 'ml_forum/replies.html'
+    context_object_name = 'posts'
+    extra_context = {'title': 'Ответы'}
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+    def get_queryset(self):
+        if self.kwargs['username'] != self.request.user.username:
+            raise PermissionDenied
+        return Post.objects.filter(is_published=True, reply_to=self.request.user.username)
+
+
+def reply_watched(request, post_id):
+    try:
+        Post.objects.filter(pk=post_id).update(reply_watched=True)
+    except Post.DoesNotExist:
+        return redirect('replies', request.user.username)
+    return redirect('replies', request.user.username)
 
 
 class DataMixin:
@@ -287,3 +314,11 @@ class LoginUser(DataMixin, LoginView):
 def logout_user(request):
     logout(request)
     return redirect('login')
+
+
+def pageNotFound(request, exception):
+    return render(request, 'ml_forum/404error.html')
+
+
+def pageForbidden(request, exception):
+    return render(request, 'ml_forum/403error.html')

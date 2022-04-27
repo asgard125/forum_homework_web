@@ -2,7 +2,7 @@
 {% block content %}
 <h1>{{title}}</h1>
 <h1>{{section.name}}</h1>
-{% if request.user.username != '' %}
+{% if request.user.is_authenticated %}
 {% if request.user.userprofile.verified %}
 <a class="btn btn-secondary" href="{% url 'add_topic' section.pk %}">Создать тему</a>
 {% endif %}

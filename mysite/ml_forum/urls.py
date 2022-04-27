@@ -16,4 +16,7 @@ urlpatterns = [
     path(r'section/<int:section_id>/topic/<int:topic_id>/add_post/<str:reply_to>', views.AddPost.as_view(), name='add_post'),
     path(r'section/<int:section_id>/topic/<int:topic_id>/add_post', views.AddPost.as_view(), name='add_post', kwargs={'reply_to':' '}),
     path('section/<int:section_id>/topic/<int:topic_id>/post_edit/<int:post_id>', views.EditPost.as_view(), name='edit_post'),
+    path('section/<int:section_id>/topic/<int:topic_id>/post_delete/<int:post_id>', views.delete_post, name='delete_post'),
+    path('<slug:username>/replies', views.ShowReplies.as_view(), name='replies'),
+    path('reply_watched/<int:post_id>', views.reply_watched, name='reply_watched'),
 ]

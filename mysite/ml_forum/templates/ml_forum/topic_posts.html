@@ -3,7 +3,7 @@
 <h1>{{title}}</h1>
 <h1>{{section.name}}</h1>
 <h2>{{topic.name}}</h2>
-    {% if request.user.username != '' and topic.opened %}
+    {% if request.user.is_authenticated and topic.opened %}
         <a class="btn btn-primary" href="{% url 'add_post' section.pk topic.pk %}">Добавить пост</a><br>
     {% endif %}
     {% if topics_count == 0 %}
@@ -22,10 +22,11 @@
                 {% endif %}
             {{ p.post }}</div>
         </div>
-    {% if topic.opened and  request.user.username != ''%}
+    {% if topic.opened and request.user.is_authenticated %}
 <div class="post_buttons"><a class="btn btn-primary" href="{% url 'add_post' section.pk topic.pk p.user.username %}">Ответить</a>
     {% if p.user == request.user %}
 <a class="btn btn-secondary" href="{% url 'edit_post' section.pk topic.pk p.pk%}">Редактировать</a>
+    <a class="btn btn-danger" href="{% url 'delete_post' section.pk topic.pk p.pk%}">Удалить</a>
     {% endif %}
 </div>
     {% endif %}
