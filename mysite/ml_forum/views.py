@@ -246,6 +246,8 @@ def delete_post(request, section_id, topic_id, post_id):
         if post.user != request.user:
             raise PermissionDenied
         post.delete()
+        Topic.objects.filter(pk=post.topic.pk).update(posts_count=F("posts_count") - 1)
+        UserProfile.objects.filter(pk=post.user.pk).update(messages_count=F("messages_count") - 1)
         return redirect('topic', section_id=section_id, topic_id=topic_id)
     except Post.DoesNotExist:
         return redirect('topic', section_id=section_id, topic_id=topic_id)
