@@ -217,12 +217,14 @@ class EditPost(UpdateView, LoginRequiredMixin):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
+            post = self.get_object()
             context['section'] = Section.objects.get(pk=self.kwargs['section_id'])
             context['topic'] = Topic.objects.get(pk=self.kwargs['topic_id'])
             context['section_id'] = self.kwargs['section_id']
             context['topic_id'] = self.kwargs['topic_id']
             context['post_id'] = self.kwargs['post_id']
-            if not context['section'].is_published or not context['topic'].is_published or not context['topic'].opened:
+            if not context['section'].is_published or not context['topic'].is_published or not context['topic'].opened \
+                    or not post.user == self.request.user:
                 raise PermissionDenied
         except (Section.DoesNotExist, Topic.DoesNotExist):
             raise Http404()
@@ -239,11 +241,11 @@ class EditPost(UpdateView, LoginRequiredMixin):
 
 
 def pageNotFound(request, exception):
-    return HttpResponseNotFound('нету бля')
+    return render(request, 'ml_forum/404error.html')
 
 
 def pageForbidden(request, exception):
-    return HttpResponseForbidden('ты куда лезеш эээ бляяя')
+    return render(request, 'ml_forum/403error.html')
 
 
 class DataMixin:
