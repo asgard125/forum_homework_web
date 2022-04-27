@@ -52,10 +52,11 @@ class Section(models.Model):
 class Topic(models.Model):
     name = models.CharField(max_length=30, verbose_name='Название')
     description = models.CharField(max_length=50, verbose_name='Краткое описание')
-    posts_count = models.IntegerField(default=0)
+    posts_count = models.IntegerField(default=1)
     time_create = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=True)
+    opened = models.BooleanField(default=True)
     section = models.ForeignKey('Section', on_delete=models.PROTECT)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
 
@@ -68,7 +69,7 @@ class Topic(models.Model):
     class Meta:
         verbose_name = 'Темы'
         verbose_name_plural = 'Темы'
-        ordering = ['posts_count', 'time_create', 'name']
+        ordering = ['-posts_count', 'time_create', 'name']
 
 
 class Post(models.Model):
@@ -77,9 +78,9 @@ class Post(models.Model):
     time_create = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=True)
-    reply_to = models.TextField(blank=True)
+    reply_to = models.CharField(max_length=255, blank=False)
     reply_watched = models.BooleanField(default=False)
-    topic = models.ForeignKey('Topic', on_delete=models.PROTECT)
+    topic = models.ForeignKey(Topic, on_delete=models.PROTECT)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     def __str__(self):
@@ -88,4 +89,4 @@ class Post(models.Model):
     class Meta:
         verbose_name = 'Посты'
         verbose_name_plural = 'Посты'
-        ordering = ['time_create']
+        ordering = ['-start_post', 'time_create']

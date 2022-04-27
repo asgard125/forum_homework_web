@@ -1,7 +1,7 @@
 {% extends 'ml_forum/base.html' %}
 {% block content %}
 <h1>{{title}}</h1>
-<form action="{% url 'add_post' section_id topic_id reply_to%}" method="post">
+<form action="{% url 'edit_post' section_id topic_id post_id%}" method="post">
     {% csrf_token %}
     {% for f in form %}
     <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>

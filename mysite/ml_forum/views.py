@@ -9,12 +9,13 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
 from .models import *
 from django.core.exceptions import PermissionDenied
-from ml_forum.forms import RegisterUserForm, LoginUserForm, AddTopicForm, EditProfileForm, VerifyProfileForm
+from ml_forum.forms import RegisterUserForm, LoginUserForm, AddTopicForm, EditProfileForm, VerifyProfileForm, PostForm
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
 import random
 import ml_forum.smtp_data
+from django.db.models import F
 
 
 class ShowSections(ListView):
@@ -98,6 +99,7 @@ class ShowTopics(ListView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+        print(self.request.user.username)
         try:
             context['section'] = Section.objects.get(pk=self.kwargs['section_id'])
             if not context['section'].is_published:
@@ -108,7 +110,6 @@ class ShowTopics(ListView):
 
     def get_queryset(self):
         return Topic.objects.filter(is_published=True, section__pk=self.kwargs['section_id'])
-
 
 
 @login_required
@@ -131,9 +132,11 @@ def add_topic(request, section_id):
                 'post': data['post'],
                 'start_post': True,
                 'topic': new_topic,
-                'user': request.user
+                'user': request.user,
+                'reply_to': ' '
             }
             Post.objects.create(**start_post_data)
+            Section.objects.filter(pk=section_id).update(topics_count=F("topics_count") + 1)
             return redirect('section', section_id)
     else:
         form = AddTopicForm()
@@ -148,13 +151,15 @@ def add_topic(request, section_id):
 class ShowTopicPosts(ListView):
     model = Post
     template_name = 'ml_forum/topic_posts.html'
-    context_object_name = 'topics'
+    context_object_name = 'posts'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
             context['section'] = Section.objects.get(pk=self.kwargs['section_id'])
             context['topic'] = Topic.objects.get(pk=self.kwargs['topic_id'])
+            context['topic_id'] = self.kwargs['topic_id']
+            context['section_id'] = self.kwargs['section_id']
             if not context['section'].is_published or not context['topic'].is_published:
                 raise PermissionDenied
         except (Section.DoesNotExist, Topic.DoesNotExist):
@@ -162,19 +167,75 @@ class ShowTopicPosts(ListView):
         return context
 
     def get_queryset(self):
-        return Topic.objects.filter(is_published=True, section__pk=self.kwargs['section_id'])
+        return Post.objects.filter(is_published=True, topic__pk=self.kwargs['topic_id'])
 
 
-class AddPost(CreateView):
+class AddPost(CreateView, LoginRequiredMixin):
     model = Post
+    form_class = PostForm
+    template_name = 'ml_forum/post_create.html'
+    context_object_name = 'form'
+    extra_context = {'title': 'Добавление поста'}
+    login_url = '/login/'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['section'] = Section.objects.get(pk=self.kwargs['section_id'])
+            context['topic'] = Topic.objects.get(pk=self.kwargs['topic_id'])
+            context['topic_id'] = self.kwargs['topic_id']
+            context['section_id'] = self.kwargs['section_id']
+            context['reply_to'] = self.kwargs['reply_to']
+            if not context['section'].is_published or not context['topic'].is_published or not context['topic'].opened:
+                raise PermissionDenied
+        except (Section.DoesNotExist, Topic.DoesNotExist):
+            raise Http404()
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("topic", kwargs={'section_id': self.kwargs['section_id'], 'topic_id': self.kwargs['topic_id']})
+
+    def form_valid(self, form):
+        self.post = form.save(commit=False)
+        self.post.user = self.request.user
+        self.post.topic = Topic.objects.get(pk=self.kwargs['topic_id'])
+        self.post.reply_to = self.kwargs['reply_to']
+        Topic.objects.filter(pk=self.kwargs['topic_id']).update(posts_count=F("posts_count") + 1)
+        UserProfile.objects.filter(user=self.request.user).update(messages_count=F("messages_count") + 1)
+        self.post.save()
+        return super(AddPost, self).form_valid(form)
 
 
+class EditPost(UpdateView, LoginRequiredMixin):
+    model = Post
+    form_class = PostForm
+    template_name = 'ml_forum/post_edit.html'
+    context_object_name = 'form'
+    extra_context = {'title': 'Редактирование поста'}
+    login_url = '/login/'
 
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['section'] = Section.objects.get(pk=self.kwargs['section_id'])
+            context['topic'] = Topic.objects.get(pk=self.kwargs['topic_id'])
+            context['section_id'] = self.kwargs['section_id']
+            context['topic_id'] = self.kwargs['topic_id']
+            context['post_id'] = self.kwargs['post_id']
+            if not context['section'].is_published or not context['topic'].is_published or not context['topic'].opened:
+                raise PermissionDenied
+        except (Section.DoesNotExist, Topic.DoesNotExist):
+            raise Http404()
+        return context
 
-def pages(request, page):
-    if page > 15:
-        raise Http404()
-    return HttpResponse(f"page<p>{page}</p>")
+    def get_object(self, queryset=None):
+        try:
+            return Post.objects.get(pk=self.kwargs['post_id'])
+        except Post.DoesNotExist:
+            raise Http404()
+
+    def get_success_url(self):
+        return reverse_lazy("topic", kwargs={'section_id': self.kwargs['section_id'], 'topic_id': self.kwargs['topic_id']})
 
 
 def pageNotFound(request, exception):
@@ -191,7 +252,7 @@ class DataMixin:
         return context
 
 
-class RegisterUser(CreateView):
+class RegisterUser(CreateView, DataMixin):
     form_class = RegisterUserForm
     template_name = 'ml_forum/register.html'
     success_url = reverse_lazy('index')

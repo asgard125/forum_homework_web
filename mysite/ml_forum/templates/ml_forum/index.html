@@ -3,7 +3,7 @@
 <h1>{{title}}</h1>
 <div class="list-group">
     {% for s in sections %}
-        <a href="{{s.get_absolute_url}}" class="list-group-item list-group-item-action list-group-item-secondary">{{s.name}}</a><br>
+        <a href="{{s.get_absolute_url}}" class="list-group-item list-group-item-action list-group-item-secondary" style="margin: 1% auto;">{{s.name}}<br> Тем: {{s.topics_count}}</a>
         {% endfor %}
 </div>
 {% endblock %}

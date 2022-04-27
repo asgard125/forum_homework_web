@@ -2,13 +2,34 @@
 {% block content %}
 <h1>{{title}}</h1>
 <h1>{{section.name}}</h1>
-<h1>{{topic.name}}</h1>
+<h2>{{topic.name}}</h2>
+    {% if request.user.username != '' and topic.opened %}
+        <a class="btn btn-primary" href="{% url 'add_post' section.pk topic.pk %}">Добавить пост</a><br>
+    {% endif %}
     {% if topics_count == 0 %}
-        <h1>сообщений пока нет</h1>
+        <h4>сообщений пока нет</h4><br>
     {% else %}
     {% for p in posts %}
-        <li>{{p.user}}<br>{{p.post}}</a></li>
+        {% if p.is_published %}
+        <div class="post_row">
+            <div class="post_row_info"> <center><a href="{% url 'profile' p.user.username %}">{{p.user.username}}</a></center>
+                <img src="{{ p.user.userprofile.photo.url }}" class="post_image">
+                <small><center>Сообщений: {{p.user.userprofile.messages_count}}</center></small>
+            </div>
+            <div class="post_row_message">{{ p.time_create }} <br>
+                {% if p.reply_to != ' ' %}
+                <b>Ответ для: {{p.reply_to}}</b><br>
+                {% endif %}
+            {{ p.post }}</div>
+        </div>
+    {% if topic.opened and  request.user.username != ''%}
+<div class="post_buttons"><a class="btn btn-primary" href="{% url 'add_post' section.pk topic.pk p.user.username %}">Ответить</a>
+    {% if p.user == request.user %}
+<a class="btn btn-secondary" href="{% url 'edit_post' section.pk topic.pk p.pk%}">Редактировать</a>
+    {% endif %}
+</div>
+    {% endif %}
+    {% endif %}
     {% endfor %}
-<a class="btn btn-primary" href="{% url 'add_post' section.pk topic.pk %}">Добавить сообщение</a>
 {% endif %}
 {% endblock %}

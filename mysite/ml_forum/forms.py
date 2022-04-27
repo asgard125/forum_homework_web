@@ -30,6 +30,18 @@ class AddTopicForm(forms.Form):
     captcha = CaptchaField()
 
 
+class PostForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Post
+        fields = ['post']
+        widgets = {
+            'post': forms.Textarea(attrs={'cols': 100, 'rows': 10}),
+        }
+
+
 class EditProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,25 +63,11 @@ class EditProfileForm(forms.ModelForm):
         if profile.telegram != '':
             profile.telegram = "https://t.me/" + profile.telegram.split('/')[-1]
         if profile.github != '':
-            profile.github= "https://github.com/" + profile.github.split('/')[-1]
+            profile.github = "https://github.com/" + profile.github.split('/')[-1]
         profile.save()
         return profile
 
 
-
-
-
-
-# class EditProfileForm(forms.Form):
-#     name = forms.CharField(label="Имя", max_length=25,  widget=forms.TextInput(attrs={'class': 'form-input'}), required=False)
-#     surname = forms.CharField(label="Фамилия", max_length=25, widget=forms.TextInput(attrs={'class': 'form-input'}), required=False)
-#     biography = forms.CharField(label="О себе", widget=forms.Textarea(attrs={'cols': 100, 'rows': 10}), required=False)
-#     email = forms.EmailField(label="Почта:", widget=forms.EmailInput(attrs={'class': 'form-input'}), required=False)
-#     photo = forms.ImageField(label="Фото профиля", required=False)
-#     github = forms.CharField(label="Github", max_length=100, widget=forms.TextInput(attrs={'class': 'form-input'}), required=False)
-#     telegram = forms.CharField(label="Telegram", max_length=100, widget=forms.TextInput(attrs={'class': 'form-input'}), required=False)
-#     is_public = forms.BooleanField(label="Публичный профиль", required=False)
-
-
 class VerifyProfileForm(forms.Form):
     code = forms.IntegerField(label="На почту был выслан код подтверждения")
+

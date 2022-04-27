@@ -4,7 +4,6 @@ from . import views
 
 urlpatterns = [
     path('', views.ShowSections.as_view(), name='index'),
-    re_path(r'^pages/(?P<page>[0-9]{2})/', views.pages),
     path('register/', views.RegisterUser.as_view(), name='register'),
     path('login/', views.LoginUser.as_view(), name='login'),
     path('logout/', views.logout_user, name='logout'),
@@ -14,4 +13,7 @@ urlpatterns = [
     path('section/<int:section_id>', views.ShowTopics.as_view(), name='section'),
     path('section/<int:section_id>/add_topic', views.add_topic, name='add_topic'),
     path('section/<int:section_id>/topic/<int:topic_id>', views.ShowTopicPosts.as_view(), name='topic'),
+    path(r'section/<int:section_id>/topic/<int:topic_id>/add_post/<str:reply_to>', views.AddPost.as_view(), name='add_post'),
+    path(r'section/<int:section_id>/topic/<int:topic_id>/add_post', views.AddPost.as_view(), name='add_post', kwargs={'reply_to':' '}),
+    path('section/<int:section_id>/topic/<int:topic_id>/post_edit/<int:post_id>', views.EditPost.as_view(), name='edit_post'),
 ]

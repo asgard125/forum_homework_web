@@ -1,7 +1,30 @@
 {% extends 'ml_forum/base.html' %}
 {% block content %}
 <h1>{{title}}</h1>
+<h5>{{profile.user.username}}<br>
+{% if profile.verified %}
+    Профиль подтвержден
+{% else %}
+Профиль не подтвержден
+{% endif %}</h5>
+    {% if request.user == profile.user %}
     <a class="btn btn-primary" href="{% url 'profile_edit' request.user.username %}">Редактировать профиль</a>
     <a class="btn btn-primary" href="{% url 'profile_verify' request.user.username %}">Подтвердить профиль</a>
-    <li>{{profile.name}}  {{profile.surname}}</li>
+    {% endif %}
+    {% if profile.is_public %}
+    <div class="post_row">
+                <img src="{{ profile.photo.url }}" class="post_image" style="width: 400px; height: 400px; margin: 1% 1% 1% 1%;">
+            <div class="post_row_message">
+                Дата создания: {{profile.time_create}}<br>
+                Имя: {{profile.name}}<br>
+                Фамилия: {{profile.surname}}<br>
+                Почта: {{profile.email}}<br>
+                Гитхаб: <a href="{{profile.github}}">{{profile.github}}</a><br>
+                Телеграм: <a href="{{profile.telegram}}">{{profile.telegram}}</a><br>
+                О себе: {{profile.biography}}
+            </div>
+    </div>
+    {% else %}
+    <h4>Пользователь скрыл свой профиль</h4>
+    {% endif %}
 {% endblock %}
