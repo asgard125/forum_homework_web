@@ -1,1 +1,3 @@
-# It is my homework project on django for university
+# It a forum on django.
+
+Was made as a homework project for my university
